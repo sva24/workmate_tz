@@ -1,17 +1,11 @@
-from typing import List
-
 from tabulate import tabulate
+from typing import List, Dict
 
 
-def make_perf_report(employees: List[dict]) -> None:
+def prepare_perf_report(employees: List[Dict]) -> List[Dict]:
     """
-    Обрабатывает переданные данные и создает отчет о производительности.
-
-    Args:
-        employees (dict): Данные для обработки.
-
-    Returns:
-        List[dict]: Данные для вывода пользователю.
+    Обрабатывает сотрудников и возвращает список словарей
+    с должностью и производительностью, отсортированный по performance.
     """
     report = []
     for emp in employees:
@@ -22,16 +16,23 @@ def make_perf_report(employees: List[dict]) -> None:
             }
         )
 
-    report_sorted = sorted(report, key=lambda x: x["performance"], reverse=True)
-
-    print_report(report_sorted)
+    return sorted(report, key=lambda x: x["performance"], reverse=True)
 
 
-def print_report(employees: List[dict]) -> None:
+def print_report(employees: List[Dict]) -> None:
     """Печатает отчет о производительности в виде таблицы"""
+
     table_data = []
     for idx, item in enumerate(employees, 1):
         table_data.append([idx, item["position"], item["performance"]])
 
     headers = ["position", "performance"]
     print(tabulate(table_data, headers=headers))
+
+
+def make_perf_report(employees: List[Dict]) -> None:
+    """
+    Основная функция генерации отчета: обрабатывает данные и печатает таблицу.
+    """
+    report_sorted = prepare_perf_report(employees)
+    print_report(report_sorted)
