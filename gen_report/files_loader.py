@@ -1,64 +1,106 @@
-import os
-from typing import List
 import csv
+from pathlib import Path
+from typing import Dict, List
 
 
 class FileLoader:
+    """
+    Универсальный загрузчик файлов сотрудников.
+    """
+
+    def __init__(self):
+        self.formats = {
+            ".csv": self._load_csv,
+        }
+
     @staticmethod
-    def validate_files(file_paths: List[str]) -> None:
+    def validate_files(file_paths: List[str]) -> List[Path]:
         """
-        Проверяет корректность переданных файлов
+        Проверяет корректность переданных файлов.
+
+        Args:
+           List[str]: file_paths: список путей
+
+        Returns:
+            Список объектов Path
+
         Raises:
-            ValueError: если файлы некорректны
+            ValueError: если пути некорректны
         """
         errors = []
+        paths: List[Path] = []
 
         if not file_paths:
-            errors.append("Не указаны файлы для обработки")
+            raise ValueError("Не указаны файлы для обработки")
 
-        for file_path in file_paths:
-            if not os.path.exists(file_path):
-                errors.append(f"Файл не найден: {file_path}")
-            elif not os.path.isfile(file_path):
-                errors.append(f"Указанный путь не является файлом: {file_path}")
+        for raw_path in file_paths:
+            p = Path(raw_path)
+
+            if not p.exists():
+                errors.append(f"Файл не найден: {p}")
+            elif not p.is_file():
+                errors.append(f"Указанный путь не является файлом: {p}")
+            else:
+                paths.append(p)
 
         if errors:
             raise ValueError("\n".join(errors))
 
-    @staticmethod
-    def load_files(file_paths: List[str]) -> List[dict]:
+        return paths
+
+    def load_files(self, file_paths: List[str]) -> List[Dict]:
         """
-        Загружает и парсит файлы
+        Загружает файлы любого поддерживаемого формата.
+
+        Args:
+            file_paths(List[str]: список путей к файлам
+
         Returns:
-            List[dict]: список данных из файлов
-        """
-        loaded_data = {}
+            Список словарей сотрудников
 
-        for file_path in file_paths:
+        Raises:
+            ValueError: если формат не поддерживается
+        """
+        paths = self.validate_files(file_paths)
+
+        all_employees = []
+
+        for p in paths:
+            ext = p.suffix.lower()
+
+            if ext not in self.formats:
+                raise ValueError(f"Формат файла '{ext}'" f"пока не поддерживается: {p}")
+
+            loader = self.formats[ext]
+            employees = loader([p])
+            all_employees.extend(employees)
+
+        return all_employees
+
+    def _load_csv(self, files: List[Path]) -> List[Dict]:
+        """
+        Обработчик CSV-файлов.
+
+        Args:
+           files(List[Path]: files: список Path к файлам .csv
+
+
+        Returns:
+            Список сотрудников из всех файлов
+
+        Raises:
+            ValueError: если CSV повреждён или кодировка неверна
+        """
+        employees = []
+
+        for p in files:
             try:
-                if file_path.endswith('.csv'):
-                    data = FileLoader._load_csv(file_path)
-                else:
-                    raise ValueError(f"Неподдерживаемый формат файла: {file_path}")
-
-                loaded_data.update(data)
-
-            except Exception as e:
-                raise ValueError(f"Ошибка загрузки файла {file_path}: {str(e)}")
-
-        return loaded_data
-
-    @staticmethod
-    def load_files(file_paths: List[str]) -> list:
-        """
-        Загружает файлы и возвращает список сотрудников
-        """
-        employees_list = []
-
-        for file_path in file_paths:
-            if file_path.endswith('.csv'):
-                with open(file_path, 'r', encoding='utf-8') as f:
+                with p.open("r", newline="") as f:
                     reader = csv.DictReader(f)
-                    employees_list.extend(list(reader))
+                    employees.extend(reader)
+            except UnicodeDecodeError:
+                raise ValueError(f"Ошибка кодировки в файле {p}")
+            except csv.Error as e:
+                raise ValueError(f"Ошибка парсинга CSV в файле {p}: {e}")
 
-        return employees_list
+        return employees

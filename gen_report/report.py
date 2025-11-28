@@ -1,5 +1,6 @@
-from gen_report.reports.performance import make_perf_report
 from typing import List
+
+from gen_report.reports.performance import make_perf_report
 
 
 def generate_report(report: str, data: List[dict]):
@@ -11,7 +12,7 @@ def generate_report(report: str, data: List[dict]):
         data (List[dict]): Сформированный отчет.
 
     Returns:
-        str: Итоговое представление различий в заданном формате.
+        Возвращает отчёт, согласно переданному параметру
     """
-    if report == 'performance':
+    if report == "performance":
         make_perf_report(data)
