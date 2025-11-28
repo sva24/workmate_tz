@@ -69,7 +69,8 @@ class FileLoader:
             ext = p.suffix.lower()
 
             if ext not in self.formats:
-                raise ValueError(f"Формат файла '{ext}' пока не поддерживается: {p}")
+                raise ValueError(f"Формат файла '{ext}'"
+                                 f" пока не поддерживается: {p}")
 
             loader = self.formats[ext]
             employees = loader([p])

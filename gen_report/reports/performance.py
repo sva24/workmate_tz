@@ -1,5 +1,6 @@
+from typing import Dict, List
+
 from tabulate import tabulate
-from typing import List, Dict
 
 
 def prepare_perf_report(employees: List[Dict]) -> List[Dict]:
