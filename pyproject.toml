@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "workmate script"
+version = "0.1.0"
+description = "Анализ эффективности работы разработчиков"
+authors = ["Vladimir Silin <sva@itx24.ru>"]
+readme = "README.md"
+packages = [
+  { include = "gen_report" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+tabulate = "^0.9.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+report = "gen_report.scripts.main:main"
